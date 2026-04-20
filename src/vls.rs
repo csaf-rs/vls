@@ -15,8 +15,8 @@ use std::str::FromStr;
 /// URL *without* the `vers:<scheme>/` prefix.  It is an ordered, `|`-separated list of
 /// [`VersionConstraint`] values.
 ///
-/// In VLS, versions are stored as plain [`String`]s. This is not a problem, was due to the unspecified
-/// format of the versions, only exact matching and no containment checks are possible.
+/// In VLS, versions are stored as plain [`String`]s. Due to the unspecified
+/// format of the versions, only exact matching is possible and containment checks are not supported.
 ///
 /// # Syntax
 ///
