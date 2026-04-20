@@ -32,7 +32,9 @@ impl VersionConstraint {
         }
 
         // Match the comparators
-        let (comparator, version) = if let Some(stripped) = constraint_str.strip_prefix(comparator::GREATER_THAN_OR_EQUAL) {
+        let (comparator, version) = if let Some(stripped) =
+            constraint_str.strip_prefix(comparator::GREATER_THAN_OR_EQUAL)
+        {
             (Comparator::GreaterThanOrEqual, stripped)
         } else if let Some(stripped) = constraint_str.strip_prefix(comparator::LESS_THAN_OR_EQUAL) {
             (Comparator::LessThanOrEqual, stripped)
