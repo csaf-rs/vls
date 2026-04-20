@@ -1,7 +1,7 @@
-use std::fmt::{Display, Formatter};
+use crate::VersionConstraintError;
 use crate::comparator::{self, Comparator, EqualComparatorKind};
 use crate::utils::collect_invalid_characters;
-use crate::VersionConstraintError;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct VersionConstraint {
@@ -11,9 +11,11 @@ pub struct VersionConstraint {
 
 impl VersionConstraint {
     pub fn new(comparator: Comparator, version: String) -> VersionConstraint {
-        VersionConstraint { comparator, version }
+        VersionConstraint {
+            comparator,
+            version,
+        }
     }
-
 
     pub fn parse(constraint_str: &str) -> Result<VersionConstraint, Vec<VersionConstraintError>> {
         // Check if the constraint is empty
@@ -30,20 +32,42 @@ impl VersionConstraint {
         }
 
         // Match the comparators
-        let (comparator, version) = if constraint_str.starts_with(comparator::GREATER_THAN_OR_EQUAL) {
-            (Comparator::GreaterThanOrEqual, &constraint_str[comparator::GREATER_THAN_OR_EQUAL.len()..])
+        let (comparator, version) = if constraint_str.starts_with(comparator::GREATER_THAN_OR_EQUAL)
+        {
+            (
+                Comparator::GreaterThanOrEqual,
+                &constraint_str[comparator::GREATER_THAN_OR_EQUAL.len()..],
+            )
         } else if constraint_str.starts_with(comparator::LESS_THAN_OR_EQUAL) {
-            (Comparator::LessThanOrEqual, &constraint_str[comparator::LESS_THAN_OR_EQUAL.len()..])
+            (
+                Comparator::LessThanOrEqual,
+                &constraint_str[comparator::LESS_THAN_OR_EQUAL.len()..],
+            )
         } else if constraint_str.starts_with(comparator::NOT_EQUAL) {
-            (Comparator::NotEqual, &constraint_str[comparator::NOT_EQUAL.len()..])
+            (
+                Comparator::NotEqual,
+                &constraint_str[comparator::NOT_EQUAL.len()..],
+            )
         } else if constraint_str.starts_with(comparator::GREATER_THAN) {
-            (Comparator::GreaterThan, &constraint_str[comparator::GREATER_THAN.len()..])
+            (
+                Comparator::GreaterThan,
+                &constraint_str[comparator::GREATER_THAN.len()..],
+            )
         } else if constraint_str.starts_with(comparator::LESS_THAN) {
-            (Comparator::LessThan, &constraint_str[comparator::LESS_THAN.len()..])
+            (
+                Comparator::LessThan,
+                &constraint_str[comparator::LESS_THAN.len()..],
+            )
         } else if constraint_str.starts_with(comparator::EQUAL) {
-            (Comparator::Equal(EqualComparatorKind::Explicit), &constraint_str[comparator::EQUAL.len()..])
+            (
+                Comparator::Equal(EqualComparatorKind::Explicit),
+                &constraint_str[comparator::EQUAL.len()..],
+            )
         } else {
-            (Comparator::Equal(EqualComparatorKind::Implicit), constraint_str)
+            (
+                Comparator::Equal(EqualComparatorKind::Implicit),
+                constraint_str,
+            )
         };
 
         // Check if the string after the comparator is empty
@@ -55,7 +79,9 @@ impl VersionConstraint {
         // `1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )`
         let invalid_version_chars = collect_invalid_characters(&version, "-._+~");
         if let Some(invalid_version_chars) = invalid_version_chars {
-            return Err(vec![VersionConstraintError::InvalidVersionCharacters(invalid_version_chars)]);
+            return Err(vec![VersionConstraintError::InvalidVersionCharacters(
+                invalid_version_chars,
+            )]);
         }
 
         // This is a valid vls constraint

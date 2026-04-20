@@ -57,4 +57,3 @@ pub enum VlsError {
     #[error("Duplicate constraint(s): {}", .0.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", "))]
     DuplicateConstraintVersions(HashSet<String>),
 }
-

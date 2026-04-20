@@ -10,7 +10,11 @@ use vls::{Comparator, EqualComparatorKind, Vls};
 #[case("1.2.3", Comparator::Equal(EqualComparatorKind::Implicit), "1.2.3")]
 #[case("!=5.0", Comparator::NotEqual, "5.0")]
 #[case("*", Comparator::Any, "")]
-fn parse_single_constraint(#[case] input: &str, #[case] expected_cmp: Comparator, #[case] expected_ver: &str) {
+fn parse_single_constraint(
+    #[case] input: &str,
+    #[case] expected_cmp: Comparator,
+    #[case] expected_ver: &str,
+) {
     let v: Vls = input.parse().unwrap();
     assert_eq!(v.len(), 1);
     assert_eq!(v.constraints()[0].comparator, expected_cmp);
@@ -39,7 +43,8 @@ fn parse_multiple_constraints() {
 
 #[test]
 fn parse_complex_date_versions() {
-    let s = "<2024-4-pabc0019|>2024-10-pefd0010|<2024-12-pjkl2010|>2024-12-pjkl5010|<=2025-1-pghi1001";
+    let s =
+        "<2024-4-pabc0019|>2024-10-pefd0010|<2024-12-pjkl2010|>2024-12-pjkl5010|<=2025-1-pghi1001";
     let v: Vls = s.parse().unwrap();
     assert_eq!(v.len(), 5);
     assert_eq!(v.to_string(), s);
@@ -58,11 +63,15 @@ fn parse_equal_implicit() {
     let v_explicit: Vls = "=1.2.3".parse().unwrap();
     assert_eq!(v_implicit.len(), 1);
     assert_eq!(v_explicit.len(), 1);
-    assert_eq!(v_implicit.constraints()[0].comparator, Comparator::Equal(EqualComparatorKind::Implicit));
-    assert_eq!(v_explicit.constraints()[0].comparator, Comparator::Equal(EqualComparatorKind::Explicit));
+    assert_eq!(
+        v_implicit.constraints()[0].comparator,
+        Comparator::Equal(EqualComparatorKind::Implicit)
+    );
+    assert_eq!(
+        v_explicit.constraints()[0].comparator,
+        Comparator::Equal(EqualComparatorKind::Explicit)
+    );
     assert_eq!(v_implicit.constraints()[0].version, "1.2.3");
     assert_eq!(v_explicit.constraints()[0].version, "1.2.3");
     assert_eq!(v_implicit, v_implicit);
 }
-
-

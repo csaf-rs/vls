@@ -1,13 +1,13 @@
 //! The core [`Vls`] type.
 
-use std::collections::HashSet;
+use crate::comparator::Comparator;
+use crate::constraint::VersionConstraint;
 use crate::error::{VersionConstraintError, VlsError};
+use crate::utils::collect_invalid_characters;
+use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;
 use std::str::FromStr;
-use crate::comparator::Comparator;
-use crate::constraint::VersionConstraint;
-use crate::utils::collect_invalid_characters;
 
 /// A **Vers-like Specifier** (VLS).
 ///
@@ -71,7 +71,10 @@ impl Vls {
     pub fn is_single_version(&self) -> bool {
         matches!(
             self.constraints.as_slice(),
-            [VersionConstraint { comparator: Comparator::Equal(_), .. }]
+            [VersionConstraint {
+                comparator: Comparator::Equal(_),
+                ..
+            }]
         )
     }
 
@@ -96,10 +99,7 @@ impl FromStr for Vls {
         // Early return for Comparator::Any
         if s == "*" {
             return Ok(Self {
-                constraints: vec![VersionConstraint::new(
-                    Comparator::Any,
-                    String::default(),
-                )],
+                constraints: vec![VersionConstraint::new(Comparator::Any, String::default())],
             });
         }
 
@@ -137,7 +137,7 @@ impl FromStr for Vls {
         for part in parts {
             match VersionConstraint::parse(part) {
                 Ok(constraint) => constraints.push(constraint),
-                Err(errors) => constraint_errors.get_or_insert_default().extend(errors)
+                Err(errors) => constraint_errors.get_or_insert_default().extend(errors),
             }
         }
 
@@ -158,7 +158,9 @@ impl FromStr for Vls {
         let mut duplicate_versions: Option<HashSet<String>> = None;
         for c in &constraints {
             if seen_versions.contains(&&c.version) {
-                duplicate_versions.get_or_insert_default().insert(c.version.clone());
+                duplicate_versions
+                    .get_or_insert_default()
+                    .insert(c.version.clone());
             } else {
                 seen_versions.push(c.version.clone());
             }
@@ -170,7 +172,6 @@ impl FromStr for Vls {
         Ok(Self { constraints })
     }
 }
-
 
 impl Display for Vls {
     /// Serialises back to the canonical VLS form, e.g. `>10.9a|!=10.9c|<=10.9k`.
@@ -190,4 +191,3 @@ impl Display for Vls {
         Ok(())
     }
 }
-

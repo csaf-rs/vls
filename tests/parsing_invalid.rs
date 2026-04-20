@@ -1,6 +1,6 @@
-use std::collections::HashSet;
 use rstest::rstest;
-use vls::{Vls, VersionConstraintError, VlsError};
+use std::collections::HashSet;
+use vls::{VersionConstraintError, Vls, VlsError};
 
 #[test]
 fn parse_empty_string_is_error() {
@@ -21,7 +21,11 @@ fn parse_empty_constraint_is_error(#[case] input: &str, #[case] expected_count: 
     assert!(matches!(err, VlsError::InvalidConstraintError(_)));
     if let VlsError::InvalidConstraintError(errors) = err {
         assert_eq!(errors.len(), expected_count);
-        assert!(errors.iter().all(|e| matches!(e, VersionConstraintError::EmptyConstraint)));
+        assert!(
+            errors
+                .iter()
+                .all(|e| matches!(e, VersionConstraintError::EmptyConstraint))
+        );
     }
 }
 
@@ -41,7 +45,11 @@ fn parse_empty_version_is_error(#[case] input: &str, #[case] expected_count: usi
     assert!(matches!(err, VlsError::InvalidConstraintError(_)));
     if let VlsError::InvalidConstraintError(errors) = err {
         assert_eq!(errors.len(), expected_count);
-        assert!(errors.iter().all(|e| matches!(e, VersionConstraintError::EmptyVersion)));
+        assert!(
+            errors
+                .iter()
+                .all(|e| matches!(e, VersionConstraintError::EmptyVersion))
+        );
     }
 }
 
