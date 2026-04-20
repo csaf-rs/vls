@@ -43,19 +43,12 @@ pub enum Comparator {
     Any,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EqualComparatorKind {
     Implicit,
     Explicit,
 }
 
-impl PartialEq for EqualComparatorKind {
-    fn eq(&self, _other: &Self) -> bool {
-        true
-    }
-}
-
-impl Eq for EqualComparatorKind {}
 
 impl fmt::Display for EqualComparatorKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

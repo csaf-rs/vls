@@ -154,15 +154,13 @@ impl FromStr for Vls {
         }
 
         // Check for duplicate constraints
-        let mut seen_versions: Vec<String> = Vec::new();
+        let mut seen_versions: HashSet<&str> = HashSet::new();
         let mut duplicate_versions: Option<HashSet<String>> = None;
         for c in &constraints {
-            if seen_versions.contains(&c.version) {
+            if !seen_versions.insert(&c.version) {
                 duplicate_versions
                     .get_or_insert_default()
                     .insert(c.version.clone());
-            } else {
-                seen_versions.push(c.version.clone());
             }
         }
         if let Some(duplicate_versions) = duplicate_versions {
@@ -174,11 +172,8 @@ impl FromStr for Vls {
 }
 
 impl Display for Vls {
-    /// Serialises back to the canonical VLS form, e.g. `>10.9a|!=10.9c|<=10.9k`.
-    ///
-    /// The `=` comparator is emitted as an implicit bare version (no leading `=`),
-    /// consistent with the vers specification.  All other comparators are written
-    /// explicitly.
+    /// Serialises this VLS by joining its constraints with `|`, e.g.
+    /// `>10.9a|!=10.9c|<=10.9k`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut first = true;
         for c in &self.constraints {

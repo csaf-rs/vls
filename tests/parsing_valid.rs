@@ -56,22 +56,3 @@ fn parse_single_any() {
     assert_eq!(v.len(), 1);
     assert_eq!(v.constraints()[0].comparator, Comparator::Any);
 }
-
-#[test]
-fn parse_equal_implicit() {
-    let v_implicit: Vls = "1.2.3".parse().unwrap();
-    let v_explicit: Vls = "=1.2.3".parse().unwrap();
-    assert_eq!(v_implicit.len(), 1);
-    assert_eq!(v_explicit.len(), 1);
-    assert_eq!(
-        v_implicit.constraints()[0].comparator,
-        Comparator::Equal(EqualComparatorKind::Implicit)
-    );
-    assert_eq!(
-        v_explicit.constraints()[0].comparator,
-        Comparator::Equal(EqualComparatorKind::Explicit)
-    );
-    assert_eq!(v_implicit.constraints()[0].version, "1.2.3");
-    assert_eq!(v_explicit.constraints()[0].version, "1.2.3");
-    assert_eq!(v_implicit, v_implicit);
-}

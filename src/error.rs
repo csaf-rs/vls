@@ -38,7 +38,7 @@ pub enum VlsError {
     #[error("VLS must not contain a 'vers:' URI prefix")]
     ContainsVersPrefix,
 
-    /// The input contains a most likely contains a vers versioning-scheme
+    /// The input most likely contains a `vers` versioning-scheme
     /// component (e.g. `gem/>=2.2.0`), indicated by the presence of the scheme delimiter `/`.
     #[error("VLS must not contain a versioning-scheme component")]
     ContainsVersioningScheme,
