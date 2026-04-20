@@ -32,37 +32,18 @@ impl VersionConstraint {
         }
 
         // Match the comparators
-        let (comparator, version) = if constraint_str.starts_with(comparator::GREATER_THAN_OR_EQUAL)
-        {
-            (
-                Comparator::GreaterThanOrEqual,
-                &constraint_str[comparator::GREATER_THAN_OR_EQUAL.len()..],
-            )
-        } else if constraint_str.starts_with(comparator::LESS_THAN_OR_EQUAL) {
-            (
-                Comparator::LessThanOrEqual,
-                &constraint_str[comparator::LESS_THAN_OR_EQUAL.len()..],
-            )
-        } else if constraint_str.starts_with(comparator::NOT_EQUAL) {
-            (
-                Comparator::NotEqual,
-                &constraint_str[comparator::NOT_EQUAL.len()..],
-            )
-        } else if constraint_str.starts_with(comparator::GREATER_THAN) {
-            (
-                Comparator::GreaterThan,
-                &constraint_str[comparator::GREATER_THAN.len()..],
-            )
-        } else if constraint_str.starts_with(comparator::LESS_THAN) {
-            (
-                Comparator::LessThan,
-                &constraint_str[comparator::LESS_THAN.len()..],
-            )
-        } else if constraint_str.starts_with(comparator::EQUAL) {
-            (
-                Comparator::Equal(EqualComparatorKind::Explicit),
-                &constraint_str[comparator::EQUAL.len()..],
-            )
+        let (comparator, version) = if let Some(stripped) = constraint_str.strip_prefix(comparator::GREATER_THAN_OR_EQUAL) {
+            (Comparator::GreaterThanOrEqual, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::LESS_THAN_OR_EQUAL) {
+            (Comparator::LessThanOrEqual, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::NOT_EQUAL) {
+            (Comparator::NotEqual, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::GREATER_THAN) {
+            (Comparator::GreaterThan, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::LESS_THAN) {
+            (Comparator::LessThan, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::EQUAL) {
+            (Comparator::Equal(EqualComparatorKind::Explicit), stripped)
         } else {
             (
                 Comparator::Equal(EqualComparatorKind::Implicit),
@@ -77,7 +58,7 @@ impl VersionConstraint {
 
         // The version-string grammar allows only:
         // `1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )`
-        let invalid_version_chars = collect_invalid_characters(&version, "-._+~");
+        let invalid_version_chars = collect_invalid_characters(version, "-._+~");
         if let Some(invalid_version_chars) = invalid_version_chars {
             return Err(vec![VersionConstraintError::InvalidVersionCharacters(
                 invalid_version_chars,

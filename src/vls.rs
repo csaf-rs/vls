@@ -157,7 +157,7 @@ impl FromStr for Vls {
         let mut seen_versions: Vec<String> = Vec::new();
         let mut duplicate_versions: Option<HashSet<String>> = None;
         for c in &constraints {
-            if seen_versions.contains(&&c.version) {
+            if seen_versions.contains(&c.version) {
                 duplicate_versions
                     .get_or_insert_default()
                     .insert(c.version.clone());
