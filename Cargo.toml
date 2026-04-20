@@ -1,0 +1,17 @@
+[package]
+name = "vls"
+version = "0.1.0"
+edition = "2024"
+description = "vls (vers-like specifier) parser"
+license = "Apache-2.0"
+repository = "https://github.com/csaf-rs/vls"
+keywords = ["vls", "vers-like", "parser"]
+
+[dependencies]
+thiserror = "2"
+
+[features]
+default = []
+
+[dev-dependencies]
+rstest = "0.26.1"
