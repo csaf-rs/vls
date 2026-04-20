@@ -18,13 +18,15 @@ use std::str::FromStr;
 /// In VLS, versions are stored as plain [`String`]s. This is not a problem, was due to the unspecified
 /// format of the versions, only exact matching and no containment checks are possible.
 ///
-/// # Grammar
+/// # Syntax
+///
+/// Based on the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse),
 ///
 /// ```text
-/// vls               = constraint *( "|" constraint )
-/// constraint        = comparator version-string / "*"
-/// comparator        = "=" / "!=" / "<" / "<=" / ">" / ">="
-/// version-string    = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
+/// vls            = constraint *( "|" constraint )
+/// constraint     = comparator version-string / version-string / "*"
+/// comparator     = "!=" / "<=" / ">=" / "=" / "<" / ">"
+/// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
 /// ```
 ///
 /// # Examples
@@ -45,10 +47,6 @@ pub struct Vls {
 }
 
 impl Vls {
-    /// Create a `Vls` from a pre-built list of constraints.
-    pub fn new(constraints: Vec<VersionConstraint>) -> Self {
-        Self { constraints }
-    }
 
     /// Return a slice of all constraints in declaration order.
     pub fn constraints(&self) -> &[VersionConstraint] {
@@ -66,8 +64,7 @@ impl Vls {
     }
 
     /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single constraint with the `=` comparator.
-    /// TODO test this
+    /// i.e. it contains a single [Comparator::Equal] constraint.
     pub fn is_single_version(&self) -> bool {
         matches!(
             self.constraints.as_slice(),
@@ -115,7 +112,7 @@ impl FromStr for Vls {
         }
 
         // `/` is not a valid character in the vls grammar, but is used as the scheme delimiter in vers.
-        // It's presence indicates the string contains a  "<scheme>/" component
+        // Its presence indicates the string contains a "<scheme>/" component
         if s.contains('/') {
             return Err(VlsError::ContainsVersioningScheme);
         }
