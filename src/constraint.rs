@@ -32,8 +32,8 @@ impl VersionConstraint {
         }
 
         // Match the comparators
-        // Order must be kept, as the two-char comparators take precedence over the one-char comparators)
-        // TODO: Add regression test for this
+        // Order must be kept, as the gte/lte comparators need to take precendence over the gt/lt comparators
+        // and the implicit eq needs to be the fallthrough
         let (comparator, version) = if let Some(stripped) =
             constraint_str.strip_prefix(comparator::GREATER_THAN_OR_EQUAL)
         {
