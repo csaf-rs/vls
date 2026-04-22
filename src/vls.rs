@@ -123,7 +123,7 @@ impl FromStr for Vls {
         }
 
         // Reject any character that is not part of the 'constraints' grammar.
-        if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::VlsString) {
+        if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::ConstraintsString) {
             return Err(VlsError::InvalidCharacters(invalid));
         }
 
