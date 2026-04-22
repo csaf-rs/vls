@@ -1,6 +1,6 @@
 use crate::VersionConstraintError;
 use crate::comparator::{self, Comparator, EqualComparatorKind};
-use crate::utils::collect_invalid_characters;
+use crate::valid_chars::{collect_invalid_characters, VlsSpecialCharSet};
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -62,7 +62,7 @@ impl VersionConstraint {
 
         // Reject any character that is not part of the version-string grammar.
         // See vls::Vls for more details on the grammar.
-        let invalid_version_chars = collect_invalid_characters(version, "-._+~");
+        let invalid_version_chars = collect_invalid_characters(version, VlsSpecialCharSet::VersionString);
         if let Some(invalid_version_chars) = invalid_version_chars {
             return Err(vec![VersionConstraintError::InvalidVersionCharacters(
                 invalid_version_chars,

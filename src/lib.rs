@@ -1,7 +1,7 @@
 mod comparator;
 mod constraint;
 mod error;
-mod utils;
+mod valid_chars;
 mod vls;
 
 // public api

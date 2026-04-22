@@ -3,7 +3,7 @@
 use crate::comparator::Comparator;
 use crate::constraint::VersionConstraint;
 use crate::error::{VersionConstraintError, VlsError};
-use crate::utils::collect_invalid_characters;
+use crate::valid_chars::{collect_invalid_characters, VlsSpecialCharSet};
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;
@@ -120,8 +120,7 @@ impl FromStr for Vls {
         }
 
         // Reject any character that is not part of the vls grammar.
-        // See vls::Vls for more details on the grammar.
-        if let Some(invalid) = collect_invalid_characters(s, "-._+~=!<>|*") {
+        if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::VlsString) {
             return Err(VlsError::InvalidCharacters(invalid));
         }
 
