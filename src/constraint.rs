@@ -32,6 +32,8 @@ impl VersionConstraint {
         }
 
         // Match the comparators
+        // Order must be kept, as the two-char comparators take precedence over the one-char comparators)
+        // TODO: Add regression test for this
         let (comparator, version) = if let Some(stripped) =
             constraint_str.strip_prefix(comparator::GREATER_THAN_OR_EQUAL)
         {
@@ -58,8 +60,8 @@ impl VersionConstraint {
             return Err(vec![VersionConstraintError::EmptyVersion]);
         }
 
-        // The version-string grammar allows only:
-        // `1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )`
+        // Reject any character that is not part of the version-string grammar.
+        // See vls::Vls for more details on the grammar.
         let invalid_version_chars = collect_invalid_characters(version, "-._+~");
         if let Some(invalid_version_chars) = invalid_version_chars {
             return Err(vec![VersionConstraintError::InvalidVersionCharacters(

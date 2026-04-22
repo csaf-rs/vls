@@ -20,7 +20,11 @@ use std::str::FromStr;
 ///
 /// # Syntax
 ///
-/// Based on the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse),
+/// Derived from the [vers specification](https://www.packageurl.org/docs/vers/how-to-parse).
+/// There currently is no "official" grammar for vers-like specifier / the <version-constraint> part of
+/// vers. This is a best-effort attempt used for this library.
+///
+/// TODO: Revisit this once vers has been ratified through ECMA, which might include an official grammar.
 ///
 /// ```text
 /// vls            = constraint *( "|" constraint )
@@ -28,6 +32,12 @@ use std::str::FromStr;
 /// comparator     = "!=" / "<=" / ">=" / "=" / "<" / ">"
 /// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
 /// ```
+///
+/// For validation, this leads to two sets of characters allowed in the context of the grammar.
+///
+/// For `vls`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|" / "*"`
+///
+/// For `version-string`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~"`
 ///
 /// # Examples
 ///
@@ -47,7 +57,6 @@ pub struct Vls {
 }
 
 impl Vls {
-
     /// Return a slice of all constraints in declaration order.
     pub fn constraints(&self) -> &[VersionConstraint] {
         &self.constraints
@@ -74,19 +83,12 @@ impl Vls {
             }]
         )
     }
-
-    /// Iterate over all constraints.
-    pub fn iter(&self) -> std::slice::Iter<'_, VersionConstraint> {
-        self.constraints.iter()
-    }
 }
-
-// ── FromStr ──────────────────────────────────────────────────────────────────
 
 impl FromStr for Vls {
     type Err = VlsError;
 
-    /// Parse a VLS string such as `>10.9a|!=10.9c|<=10.9k`.
+    /// Try to parse the provided string as [Vls].
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         // If the string is empty, return an error
         if s.is_empty() {
@@ -117,9 +119,8 @@ impl FromStr for Vls {
             return Err(VlsError::ContainsVersioningScheme);
         }
 
-        // The full set of valid characters across the grammar is:
-        // `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|" / "*"`
         // Reject any character that is not part of the vls grammar.
+        // See vls::Vls for more details on the grammar.
         if let Some(invalid) = collect_invalid_characters(s, "-._+~=!<>|*") {
             return Err(VlsError::InvalidCharacters(invalid));
         }
@@ -169,8 +170,6 @@ impl FromStr for Vls {
 }
 
 impl Display for Vls {
-    /// Serialises this VLS by joining its constraints with `|`, e.g.
-    /// `>10.9a|!=10.9c|<=10.9k`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut first = true;
         for c in &self.constraints {

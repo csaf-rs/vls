@@ -15,7 +15,7 @@ pub enum VersionConstraintError {
     EmptyVersion,
 
     /// The version string contains characters outside the allowed grammar.
-    /// The VLS grammar defines: `version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )`
+    /// See vls::Vls for more details on the grammar.
     #[error("Invalid character(s) in version string: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
     InvalidVersionCharacters(Vec<char>),
 }
@@ -28,9 +28,7 @@ pub enum VlsError {
     EmptyInput,
 
     /// The input contains characters not allowed by the VLS grammar.
-    ///
-    /// The full set of valid characters across the grammar is:
-    /// `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|" / "*"`
+    /// See vls::Vls for more details on the grammar.
     #[error("Invalid character(s) in VLS: {}", .0.iter().map(|c| format!("'{}'", c.escape_default())).collect::<Vec<_>>().join(", "))]
     InvalidCharacters(Vec<char>),
 
