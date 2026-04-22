@@ -41,12 +41,6 @@ pub enum VlsError {
     #[error("VLS must not contain a versioning-scheme component")]
     ContainsVersioningScheme,
 
-    /// The wildcard `*` constraint was combined with other constraints.
-    ///
-    /// `*` matches all versions and must be the sole constraint in a VLS string.
-    #[error("Any ('*') must be the only constraint")]
-    AnyWithOtherConstraints,
-
     /// One or more version strings contain characters outside the allowed grammar.
     #[error("Invalid constraint(s): {}", .0.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", "))]
     InvalidConstraintError(Vec<VersionConstraintError>),

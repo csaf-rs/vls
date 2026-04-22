@@ -1,86 +1,55 @@
 use crate::VersionConstraintError;
-use crate::comparator::{self, Comparator, EqualComparatorKind};
-use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
+use crate::comparator::Comparator;
+use crate::version::VersionString;
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
+/// A single version constraint pairing a [`Comparator`] with a validated [`VersionString`].
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct VersionConstraint {
-    pub comparator: Comparator,
-    pub version: String,
+    comparator: Comparator,
+    version: VersionString,
 }
 
 impl VersionConstraint {
-    pub fn new(comparator: Comparator, version: String) -> VersionConstraint {
-        VersionConstraint {
-            comparator,
-            version,
-        }
+    /// Returns the comparator of this constraint.
+    pub fn comparator(&self) -> &Comparator {
+        &self.comparator
     }
 
-    pub fn parse(constraint_str: &str) -> Result<VersionConstraint, Vec<VersionConstraintError>> {
+    /// Returns a reference to the [`VersionString`].
+    pub fn version(&self) -> &VersionString {
+        &self.version
+    }
+}
+
+impl FromStr for VersionConstraint {
+    type Err = Vec<VersionConstraintError>;
+
+    fn from_str(constraint_str: &str) -> Result<Self, Self::Err> {
         // Check if the constraint is empty
         if constraint_str.is_empty() {
             return Err(vec![VersionConstraintError::EmptyConstraint]);
         }
 
-        // Check if the constraint is Comparator::Any
-        if constraint_str == comparator::ANY {
-            return Ok(Self {
-                comparator: Comparator::Any,
-                version: String::default(),
-            });
-        }
-
         // Match the comparators
-        // Order must be kept, as the gte/lte comparators need to take precendence over the gt/lt comparators
-        // and the implicit eq needs to be the fallthrough
-        let (comparator, version) = if let Some(stripped) =
-            constraint_str.strip_prefix(comparator::GREATER_THAN_OR_EQUAL)
-        {
-            (Comparator::GreaterThanOrEqual, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::LESS_THAN_OR_EQUAL) {
-            (Comparator::LessThanOrEqual, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::NOT_EQUAL) {
-            (Comparator::NotEqual, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::GREATER_THAN) {
-            (Comparator::GreaterThan, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::LESS_THAN) {
-            (Comparator::LessThan, stripped)
-        } else if let Some(stripped) = constraint_str.strip_prefix(comparator::EQUAL) {
-            (Comparator::Equal(EqualComparatorKind::Explicit), stripped)
-        } else {
-            (
-                Comparator::Equal(EqualComparatorKind::Implicit),
-                constraint_str,
-            )
-        };
+        let (comparator, version_str) = Comparator::extract_comparator(constraint_str);
 
-        // Check if the string after the comparator is empty
-        if version.is_empty() {
-            return Err(vec![VersionConstraintError::EmptyVersion]);
-        }
+        // Parse and validate the version string (checks empty + invalid chars)
+        let version: VersionString = version_str.parse()?;
 
-        // Reject any character that is not part of the version-string grammar.
-        // See vls::Vls for more details on the grammar.
-        let invalid_version_chars =
-            collect_invalid_characters(version, VlsSpecialCharSet::VersionString);
-        if let Some(invalid_version_chars) = invalid_version_chars {
-            return Err(vec![VersionConstraintError::InvalidVersionCharacters(
-                invalid_version_chars,
-            )]);
-        }
-
-        // This is a valid vls constraint
-        Ok(VersionConstraint::new(comparator, version.to_string()))
+        Ok(VersionConstraint {
+            comparator,
+            version,
+        })
     }
 }
 
 impl Display for VersionConstraint {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self.comparator {
+        match &self.comparator {
             Comparator::Equal(kind) => write!(f, "{kind}{}", self.version),
-            Comparator::Any => write!(f, "*"),
-            _ => write!(f, "{}{}", self.comparator, self.version),
+            cmp => write!(f, "{cmp}{}", self.version),
         }
     }
 }

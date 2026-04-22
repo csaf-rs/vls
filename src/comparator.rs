@@ -1,7 +1,7 @@
 //! Comparator type for the csaf-rs/vls library.
 //!
 //! The `Comparator` enum represents the different types of comparators that can be used
-//! in version constraints, such as = (implicit or explicit), !=, <, <=, >, >=, and *.
+//! in version constraints, such as = (implicit or explicit), !=, <, <=, >, and >=.
 
 use std::fmt;
 
@@ -17,8 +17,6 @@ pub const LESS_THAN_OR_EQUAL: &str = "<=";
 pub const GREATER_THAN: &str = ">";
 /// String representation of the GreaterThanOrEqual comparator.
 pub const GREATER_THAN_OR_EQUAL: &str = ">=";
-/// String representation of the Any comparator.
-pub const ANY: &str = "*";
 
 /// Comparator for version constraints.
 ///
@@ -39,8 +37,6 @@ pub enum Comparator {
     GreaterThan,
     /// Greater than or equal (>=) - The version must be greater than or equal to the constraint version.
     GreaterThanOrEqual,
-    /// Any version (*) - Matches any version. Must be used alone.
-    Any,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -58,6 +54,35 @@ impl fmt::Display for EqualComparatorKind {
     }
 }
 
+impl Comparator {
+    /// Extracts a comparator from a constraint string.
+    ///
+    /// Returns a tuple of the matched [`Comparator`] and the remaining version string.
+    /// Contains the implicit "parsing order" of the comparators:
+    /// * gte/lte comparators need to take precedence over the gt/lt comparators
+    /// * implicit eq needs to come last / be the fallthrough
+    pub fn extract_comparator(constraint_str: &str) -> (Comparator, &str) {
+        if let Some(stripped) = constraint_str.strip_prefix(GREATER_THAN_OR_EQUAL) {
+            (Comparator::GreaterThanOrEqual, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(LESS_THAN_OR_EQUAL) {
+            (Comparator::LessThanOrEqual, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(NOT_EQUAL) {
+            (Comparator::NotEqual, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(GREATER_THAN) {
+            (Comparator::GreaterThan, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(LESS_THAN) {
+            (Comparator::LessThan, stripped)
+        } else if let Some(stripped) = constraint_str.strip_prefix(EQUAL) {
+            (Comparator::Equal(EqualComparatorKind::Explicit), stripped)
+        } else {
+            (
+                Comparator::Equal(EqualComparatorKind::Implicit),
+                constraint_str,
+            )
+        }
+    }
+}
+
 impl fmt::Display for Comparator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -67,7 +92,6 @@ impl fmt::Display for Comparator {
             Comparator::LessThanOrEqual => write!(f, "{LESS_THAN_OR_EQUAL}"),
             Comparator::GreaterThan => write!(f, "{GREATER_THAN}"),
             Comparator::GreaterThanOrEqual => write!(f, "{GREATER_THAN_OR_EQUAL}"),
-            Comparator::Any => write!(f, "{ANY}"),
         }
     }
 }
