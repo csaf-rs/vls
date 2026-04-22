@@ -3,7 +3,7 @@
 use crate::comparator::Comparator;
 use crate::constraint::VersionConstraint;
 use crate::error::{VersionConstraintError, VlsError};
-use crate::valid_chars::{collect_invalid_characters, VlsSpecialCharSet};
+use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
 use std::collections::HashSet;
 use std::fmt;
 use std::fmt::Display;

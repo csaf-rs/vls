@@ -40,8 +40,8 @@ impl VlsSpecialCharSet {
     }
 }
 
-/// Checks if the char is 
-/// a) ASCII alphanumeric and   
+/// Checks if the char is
+/// a) ASCII alphanumeric and
 /// b) contained in a list of allowed special chars for either the whole VLS string or a version string.
 #[inline]
 fn is_valid_char(ch: char, valid_lookup: &[bool; 128]) -> bool {
@@ -53,7 +53,10 @@ fn is_valid_char(ch: char, valid_lookup: &[bool; 128]) -> bool {
 /// contained in `special_charset`, returning them sorted and deduplicated.
 ///
 /// Returns `None` if every character is valid.
-pub fn collect_invalid_characters(input: &str, special_charset: VlsSpecialCharSet) -> Option<Vec<char>> {
+pub fn collect_invalid_characters(
+    input: &str,
+    special_charset: VlsSpecialCharSet,
+) -> Option<Vec<char>> {
     let lookup = special_charset.get_lookup();
     let mut invalid: Vec<char> = input
         .chars()
