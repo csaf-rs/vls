@@ -21,10 +21,10 @@ const fn build_lookup(valid_special: &str) -> [bool; 128] {
 /// Identifies which set of characters is considered valid in a given context.
 pub enum VlsSpecialCharSet {
     /// Valid characters for a `version-string`.
-    /// See [vls::Vls] for more details on the grammar.
+    /// See vls::Vls for more details on the grammar.
     VersionString,
     /// Valid characters for a `vls` string
-    /// See [vls::Vls] for more details on the grammar.
+    /// See vls::Vls for more details on the grammar.
     VlsString,
 }
 
@@ -40,9 +40,8 @@ impl VlsSpecialCharSet {
     }
 }
 
-/// Checks if the char is
-/// a) ASCII alphanumeric and
-/// b) contained in a list of allowed special chars for either the whole VLS string or a version string.
+/// Checks if the char is ASCII alphanumeric or contained in a list of allowed special chars
+/// for either the whole VLS string or a version string.
 #[inline]
 fn is_valid_char(ch: char, valid_lookup: &[bool; 128]) -> bool {
     let idx = ch as usize;
