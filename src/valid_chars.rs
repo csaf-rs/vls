@@ -6,7 +6,13 @@ const fn build_lookup(valid_special: &str) -> [bool; 128] {
     let bytes = valid_special.as_bytes();
     let mut i = 0;
     while i < bytes.len() {
-        table[bytes[i] as usize] = true;
+        if bytes[i] < 128 {
+            table[bytes[i] as usize] = true;
+        } else {
+            panic!(
+                "Only ASCII characters (0-127) are allowed in the special character set lookup, found a byte value >= 128. This is a developer error."
+            );
+        }
         i += 1;
     }
     table
