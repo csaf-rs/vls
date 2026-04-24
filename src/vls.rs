@@ -1,5 +1,6 @@
 //! The core [`Vls`] type.
 
+use crate::VersionString;
 use crate::comparator::Comparator;
 use crate::constraint::VersionConstraint;
 use crate::error::{VersionConstraintError, VlsError};
@@ -12,11 +13,15 @@ use std::str::FromStr;
 /// A **Vers-like Specifier** (VLS).
 ///
 /// VLS is the `<version-constraint>` part of a [vers](https://github.com/package-url/vers-spec)
-/// URL *without* the `vers:<scheme>/` prefix.  It is an ordered, `|`-separated list of
-/// [`VersionConstraint`] values.
+/// URL *without* the `vers:<scheme>/` prefix.
 ///
-/// In VLS, versions are stored as plain [`String`]s. Due to the unspecified
-/// format of the versions, only exact matching is possible and containment checks are not supported.
+/// It is either an ordered, `|`-separated list of [`VersionConstraint`] values (via [Constraints](Self::Constraints))
+/// or a wildcard (`*`) indicating that any version is acceptable (via [Any](Self::Any)).
+///
+/// Due to the unspecified format of the versions, only exact matching is possible and containment checks are not supported.
+///
+/// Be aware that when parsing of a string into [Vls], the parser returns the first [VlsError] encountered in the parsing process.
+/// This will obfuscate other errors that might appear further into the parsing process.
 ///
 /// # Syntax
 ///
@@ -27,15 +32,16 @@ use std::str::FromStr;
 /// TODO: Revisit this once vers has been ratified through ECMA, which might include an official grammar.
 ///
 /// ```text
-/// vls            = constraint *( "|" constraint )
-/// constraint     = comparator version-string / version-string / "*"
+/// vls            = constraints / "*"
+/// constraints    = constraint *( "|" constraint )
+/// constraint     = comparator version-string / version-string
 /// comparator     = "!=" / "<=" / ">=" / "=" / "<" / ">"
 /// version-string = 1*( ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" )
 /// ```
 ///
 /// For validation, this leads to two sets of characters allowed in the context of the grammar.
 ///
-/// For `vls`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|" / "*"`
+/// For `constraints`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|"`
 ///
 /// For `version-string`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~"`
 ///
@@ -45,42 +51,41 @@ use std::str::FromStr;
 /// use vls::Vls;
 ///
 /// let vls: Vls = "<=2".parse().unwrap();
-/// assert_eq!(vls.len(), 1);
+/// assert_eq!(vls.constraints().len(), 1);
 ///
 /// let vls: Vls = ">10.9a|!=10.9c|!=10.9f|<=10.9k".parse().unwrap();
-/// assert_eq!(vls.len(), 4);
+/// assert_eq!(vls.constraints().len(), 4);
 /// assert_eq!(vls.to_string(), ">10.9a|!=10.9c|!=10.9f|<=10.9k");
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Vls {
-    constraints: Vec<VersionConstraint>,
+pub enum Vls {
+    /// Matches any version (`*`).
+    Any,
+    /// An ordered, `|`-separated list of [`VersionConstraint`] values (always non-empty).
+    Constraints(Vec<VersionConstraint>),
 }
 
 impl Vls {
-    /// Return a slice of all constraints in declaration order.
+    /// Return the constraints, or an empty slice for [`Any`](Self::Any).
     pub fn constraints(&self) -> &[VersionConstraint] {
-        &self.constraints
+        match self {
+            Self::Any => &[],
+            Self::Constraints(cs) => cs,
+        }
     }
 
-    /// Return the number of constraints.
-    pub fn len(&self) -> usize {
-        self.constraints.len()
-    }
-
-    /// Return `true` if there are no constraints.
-    pub fn is_empty(&self) -> bool {
-        self.constraints.is_empty()
+    /// Return `true` if this was parsed from a single `*`.
+    pub fn is_any(&self) -> bool {
+        matches!(self, Self::Any)
     }
 
     /// Return `true` if this specifier pins exactly one version,
-    /// i.e. it contains a single [Comparator::Equal] constraint.
+    /// i.e. it contains a single [`Comparator::Equal`] constraint.
     pub fn is_single_version(&self) -> bool {
         matches!(
-            self.constraints.as_slice(),
-            [VersionConstraint {
-                comparator: Comparator::Equal(_),
-                ..
-            }]
+            self,
+            Self::Constraints(cs)
+                if cs.len() == 1 && matches!(cs[0].comparator(), &Comparator::Equal(_))
         )
     }
 }
@@ -95,11 +100,9 @@ impl FromStr for Vls {
             return Err(VlsError::EmptyInput);
         }
 
-        // Early return for Comparator::Any
+        // Early return for Any
         if s == "*" {
-            return Ok(Self {
-                constraints: vec![VersionConstraint::new(Comparator::Any, String::default())],
-            });
+            return Ok(Self::Any);
         }
 
         // The next two checks are not strictly necessary, as we would try to parse
@@ -119,8 +122,8 @@ impl FromStr for Vls {
             return Err(VlsError::ContainsVersioningScheme);
         }
 
-        // Reject any character that is not part of the vls grammar.
-        if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::VlsString) {
+        // Reject any character that is not part of the 'constraints' grammar.
+        if let Some(invalid) = collect_invalid_characters(s, VlsSpecialCharSet::ConstraintsString) {
             return Err(VlsError::InvalidCharacters(invalid));
         }
 
@@ -128,11 +131,11 @@ impl FromStr for Vls {
         let parts: Vec<&str> = s.split('|').collect();
 
         // Parse the constraints, generating parsed VersionConstraint or VersionConstraintErrors for each
-        let mut constraints = Vec::with_capacity(parts.len());
+        let mut constraints: Vec<VersionConstraint> = Vec::with_capacity(parts.len());
         let mut constraint_errors: Option<Vec<VersionConstraintError>> = None;
 
         for part in parts {
-            match VersionConstraint::parse(part) {
+            match part.parse::<VersionConstraint>() {
                 Ok(constraint) => constraints.push(constraint),
                 Err(errors) => constraint_errors.get_or_insert_default().extend(errors),
             }
@@ -143,41 +146,39 @@ impl FromStr for Vls {
             return Err(VlsError::InvalidConstraintError(constraint_errors));
         }
 
-        // The Comparator::Any represents any version, it is standalone by definition.
-        // If Comparator::Any is not the only constraint, return an error
-        let has_any = constraints.iter().any(|c| c.comparator == Comparator::Any);
-        if has_any && constraints.len() > 1 {
-            return Err(VlsError::AnyWithOtherConstraints);
-        }
-
         // Check for duplicate constraints
-        let mut seen_versions: HashSet<&str> = HashSet::new();
+        let mut seen_versions: HashSet<&VersionString> = HashSet::new();
         let mut duplicate_versions: Option<HashSet<String>> = None;
         for c in &constraints {
-            if !seen_versions.insert(&c.version) {
+            if !seen_versions.insert(c.version()) {
                 duplicate_versions
                     .get_or_insert_default()
-                    .insert(c.version.clone());
+                    .insert(c.version().to_string());
             }
         }
         if let Some(duplicate_versions) = duplicate_versions {
             return Err(VlsError::DuplicateConstraintVersions(duplicate_versions));
         }
 
-        Ok(Self { constraints })
+        Ok(Self::Constraints(constraints))
     }
 }
 
 impl Display for Vls {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut first = true;
-        for c in &self.constraints {
-            if !first {
-                f.write_str("|")?;
+        match self {
+            Self::Any => write!(f, "*"),
+            Self::Constraints(constraints) => {
+                let mut first = true;
+                for c in constraints {
+                    if !first {
+                        f.write_str("|")?;
+                    }
+                    first = false;
+                    c.fmt(f)?;
+                }
+                Ok(())
             }
-            first = false;
-            c.fmt(f)?;
         }
-        Ok(())
     }
 }

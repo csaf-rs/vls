@@ -20,22 +20,22 @@ const fn build_lookup(valid_special: &str) -> [bool; 128] {
 
 /// Identifies which set of characters is considered valid in a given context.
 pub enum VlsSpecialCharSet {
-    /// Valid characters for a `version-string`.
+    /// Valid characters for a `version-string` string.
     /// See vls::Vls for more details on the grammar.
     VersionString,
-    /// Valid characters for a `vls` string
+    /// Valid characters for a `constraints` string.
     /// See vls::Vls for more details on the grammar.
-    VlsString,
+    ConstraintsString,
 }
 
 impl VlsSpecialCharSet {
     fn get_lookup(&self) -> &'static [bool; 128] {
         // Generate compile-time lookups
         const VERSION_STRING: [bool; 128] = build_lookup("-._+~");
-        const VLS_STRING: [bool; 128] = build_lookup("-._+~=!<>|*");
+        const CONSTRAINTS_STRING: [bool; 128] = build_lookup("-._+~=!<>|");
         match self {
             VlsSpecialCharSet::VersionString => &VERSION_STRING,
-            VlsSpecialCharSet::VlsString => &VLS_STRING,
+            VlsSpecialCharSet::ConstraintsString => &CONSTRAINTS_STRING,
         }
     }
 }
