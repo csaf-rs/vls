@@ -1,6 +1,6 @@
 use crate::VersionConstraintError;
 use crate::comparator::{self, Comparator, EqualComparatorKind};
-use crate::utils::collect_invalid_characters;
+use crate::valid_chars::{VlsSpecialCharSet, collect_invalid_characters};
 use std::fmt::{Display, Formatter};
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -32,8 +32,8 @@ impl VersionConstraint {
         }
 
         // Match the comparators
-        // Order must be kept, as the two-char comparators take precedence over the one-char comparators)
-        // TODO: Add regression test for this
+        // Order must be kept, as the gte/lte comparators need to take precendence over the gt/lt comparators
+        // and the implicit eq needs to be the fallthrough
         let (comparator, version) = if let Some(stripped) =
             constraint_str.strip_prefix(comparator::GREATER_THAN_OR_EQUAL)
         {
@@ -62,7 +62,8 @@ impl VersionConstraint {
 
         // Reject any character that is not part of the version-string grammar.
         // See vls::Vls for more details on the grammar.
-        let invalid_version_chars = collect_invalid_characters(version, "-._+~");
+        let invalid_version_chars =
+            collect_invalid_characters(version, VlsSpecialCharSet::VersionString);
         if let Some(invalid_version_chars) = invalid_version_chars {
             return Err(vec![VersionConstraintError::InvalidVersionCharacters(
                 invalid_version_chars,
