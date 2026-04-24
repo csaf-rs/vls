@@ -28,8 +28,12 @@ fn build_vls_string(n: usize) -> String {
 fn bench_parsing(c: &mut Criterion) {
     let mut group = c.benchmark_group("vls_parse");
 
-    for count in [100, 1_000, 10_000, 50_000, 100_000] {
-        let input = build_vls_string(count);
+    let test_data: Vec<(usize, String)> = [100, 1_000, 10_000, 50_000, 100_000]
+        .iter()
+        .map(|&n| (n, build_vls_string(n)))
+        .collect();
+
+    for (count, input) in test_data {
         group.throughput(criterion::Throughput::Elements(count as u64));
         group.bench_with_input(
             BenchmarkId::new("constraints", count),
