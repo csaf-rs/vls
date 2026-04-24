@@ -15,7 +15,7 @@ use std::str::FromStr;
 /// VLS is the `<version-constraint>` part of a [vers](https://github.com/package-url/vers-spec)
 /// URL *without* the `vers:<scheme>/` prefix.
 ///
-/// It is either an ordered, `|`-separated list of [`VersionConstraint`] values (via [Constraints](Self::Constraints),
+/// It is either an ordered, `|`-separated list of [`VersionConstraint`] values (via [Constraints](Self::Constraints))
 /// or a wildcard (`*`) indicating that any version is acceptable (via [Any](Self::Any)).
 ///
 /// Due to the unspecified format of the versions, only exact matching is possible and containment checks are not supported.
