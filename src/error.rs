@@ -1,6 +1,6 @@
 //! Error types for the `vls` crate.
 
-use std::collections::HashSet;
+use std::collections::BTreeSet;
 use thiserror::Error;
 
 /// Errors specific to a single constraint within a VLS string.
@@ -47,5 +47,5 @@ pub enum VlsError {
 
     /// The input contains duplicate constraint version, irrespective of their comparators.
     #[error("Duplicate constraint(s): {}", .0.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", "))]
-    DuplicateConstraintVersions(HashSet<String>),
+    DuplicateConstraintVersions(BTreeSet<String>),
 }
