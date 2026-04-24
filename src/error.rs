@@ -45,7 +45,7 @@ pub enum VlsError {
     #[error("Invalid constraint(s): {}", .0.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(", "))]
     InvalidConstraintError(Vec<VersionConstraintError>),
 
-    /// The input contains duplicate constraint version, irrespective of their comparators.
+    /// The input contains duplicate constraint versions, irrespective of their comparators.
     #[error("Duplicate constraint(s): {}", .0.iter().map(|s| format!("'{}'", s)).collect::<Vec<_>>().join(", "))]
     DuplicateConstraintVersions(BTreeSet<String>),
 }
