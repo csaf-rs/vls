@@ -1,4 +1,4 @@
-use criterion::{BenchmarkId, Criterion, criterion_group, criterion_main};
+use criterion::{BenchmarkId, Criterion, black_box, criterion_group, criterion_main};
 use std::fmt::Write;
 use std::str::FromStr;
 use vls::Vls;
@@ -30,11 +30,12 @@ fn bench_parsing(c: &mut Criterion) {
 
     for count in [100, 1_000, 10_000, 50_000, 100_000] {
         let input = build_vls_string(count);
+        group.throughput(criterion::Throughput::Elements(count as u64));
         group.bench_with_input(
             BenchmarkId::new("constraints", count),
             &input,
             |b, input| {
-                b.iter(|| Vls::from_str(input).unwrap());
+                b.iter(|| black_box(Vls::from_str(black_box(input)).unwrap()));
             },
         );
     }
