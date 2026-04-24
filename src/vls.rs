@@ -41,7 +41,7 @@ use std::str::FromStr;
 ///
 /// For validation, this leads to two sets of characters allowed in the context of the grammar.
 ///
-/// For `constraints`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|" / "*"`
+/// For `constraints`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~" / "=" / "!" / "<" / ">" / "|"`
 ///
 /// For `version-string`: `ALPHA / DIGIT / "-" / "." / "_" / "+" / "~"`
 ///
