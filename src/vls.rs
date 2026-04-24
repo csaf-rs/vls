@@ -85,7 +85,7 @@ impl Vls {
         matches!(
             self,
             Self::Constraints(cs)
-                if cs.len() == 1 && matches!(cs[0].comparator(), Comparator::Equal(_))
+                if cs.len() == 1 && matches!(cs[0].comparator(), &Comparator::Equal(_))
         )
     }
 }
