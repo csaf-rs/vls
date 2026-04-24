@@ -32,6 +32,14 @@ impl FromStr for VersionConstraint {
             return Err(vec![VersionConstraintError::EmptyConstraint]);
         }
 
+        // Check if the constraint is Comparator::Any
+        if constraint_str == comparator::ANY {
+            return Ok(Self {
+                comparator: Comparator::Any,
+                version: String::default(),
+            });
+        }
+
         // Match the comparators
         let (comparator, version_str) = Comparator::extract_comparator(constraint_str);
 
