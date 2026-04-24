@@ -12,7 +12,15 @@ fn build_vls_string(n: usize) -> String {
             buf.push('|');
         }
         let cmp = comparators[i % comparators.len()];
-        write!(buf, "{}{}.{}.{}", cmp, i / 10_000, (i / 100) % 1000, i % 100).unwrap();
+        write!(
+            buf,
+            "{}{}.{}.{}",
+            cmp,
+            i / 10_000,
+            (i / 100) % 1000,
+            i % 100
+        )
+        .unwrap();
     }
     buf
 }
@@ -36,10 +44,3 @@ fn bench_parsing(c: &mut Criterion) {
 
 criterion_group!(benches, bench_parsing);
 criterion_main!(benches);
-
-
-
-
-
-
-
