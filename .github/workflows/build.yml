@@ -28,7 +28,7 @@ jobs:
       msrv-version: ${{ steps.rust-versions.outputs.msrv-version }}
       stable-version: ${{ steps.rust-versions.outputs.stable-version }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Update rustup
         run: rustup update stable --no-self-update
       - name: Extract Rust versions
@@ -51,7 +51,7 @@ jobs:
           - ${{ needs.prepare.outputs.msrv-version }}
           - ${{ needs.prepare.outputs.stable-version }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Update rustup
         run: rustup update stable --no-self-update
       - name: Set Rust version
